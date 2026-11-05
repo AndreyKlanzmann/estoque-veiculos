@@ -1,0 +1,7 @@
+   POST http://localhost:8080/modelos
+   Content-Type: application/json
+
+   {
+     "nome": "Corolla",
+     "marcaId": 1
+   }

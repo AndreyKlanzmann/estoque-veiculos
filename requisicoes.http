@@ -1,0 +1,30 @@
+   POST http://localhost:8080/marcas
+   Content-Type: application/json
+
+   {
+     "nome": "Toyota"
+   }
+
+   ###
+
+   POST http://localhost:8080/modelos
+   Content-Type: application/json
+
+   {
+     "nome": "Corolla",
+     "marcaId": 1
+   }
+
+   ###
+
+   POST http://localhost:8080/veiculos
+   Content-Type: application/json
+
+   {
+     "modeloId": 1,
+     "anoFabricacao": 2020,
+     "cor": "Prata",
+     "preco": 95000.00,
+     "quilometragem": 42000,
+     "status": "DISPONIVEL"
+   }

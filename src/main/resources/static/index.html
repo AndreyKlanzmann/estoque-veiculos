@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Estoque de Veículos</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; color: #222; }
+        h1 { font-size: 1.4rem; }
+        .filtros { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .filtros label { display: flex; flex-direction: column; font-size: 0.85rem; }
+        input, select, button { padding: 6px; font-size: 0.95rem; }
+        button { cursor: pointer; align-self: flex-end; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 0.9rem; }
+        th { background: #f0f0f0; }
+        #msg { margin-top: 10px; color: #555; }
+    </style>
+</head>
+<body>
+    <h1>Estoque de Veículos</h1>
+
+    <div class="filtros">
+        <label>Marca
+            <select id="marca"><option value="">Todas</option></select>
+        </label>
+        <label>Modelo
+            <select id="modelo"><option value="">Todos</option></select>
+        </label>
+        <label>Ano
+            <input type="number" id="ano" placeholder="2020">
+        </label>
+        <label>Preço mín.
+            <input type="number" id="precoMin" placeholder="0">
+        </label>
+        <label>Preço máx.
+            <input type="number" id="precoMax" placeholder="0">
+        </label>
+        <label>Status
+            <select id="status">
+                <option value="">Todos</option>
+                <option value="DISPONIVEL">Disponível</option>
+                <option value="VENDIDO">Vendido</option>
+                <option value="DESCONTINUADO">Descontinuado</option>
+            </select>
+        </label>
+        <button id="buscar">Filtrar</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th><th>Marca</th><th>Modelo</th><th>Ano</th>
+                <th>Cor</th><th>Preço</th><th>Km</th><th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="lista"></tbody>
+    </table>
+    <p id="msg"></p>
+
+    <script>
+        const marcaSel = document.getElementById('marca');
+        const modeloSel = document.getElementById('modelo');
+
+        async function carregarMarcas() {
+            const resp = await fetch('/marcas');
+            const marcas = await resp.json();
+            marcas.forEach(m => marcaSel.add(new Option(m.nome, m.id)));
+        }
+
+        async function carregarModelos() {
+            modeloSel.length = 1;
+            const url = marcaSel.value ? '/modelos?marcaId=' + marcaSel.value : '/modelos';
+            const resp = await fetch(url);
+            const modelos = await resp.json();
+            modelos.forEach(m => modeloSel.add(new Option(m.nome, m.id)));
+        }
+
+        async function buscar() {
+            const params = new URLSearchParams();
+            if (marcaSel.value) params.set('marcaId', marcaSel.value);
+            if (modeloSel.value) params.set('modeloId', modeloSel.value);
+            if (document.getElementById('ano').value) params.set('ano', document.getElementById('ano').value);
+            if (document.getElementById('precoMin').value) params.set('precoMin', document.getElementById('precoMin').value);
+            if (document.getElementById('precoMax').value) params.set('precoMax', document.getElementById('precoMax').value);
+            if (document.getElementById('status').value) params.set('status', document.getElementById('status').value);
+
+            const resp = await fetch('/veiculos?' + params.toString());
+            const veiculos = await resp.json();
+
+            const corpo = document.getElementById('lista');
+            corpo.innerHTML = '';
+            veiculos.forEach(v => {
+                const linha = corpo.insertRow();
+                [v.id, v.marca, v.modelo, v.anoFabricacao, v.cor,
+                 Number(v.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                 v.quilometragem, v.status
+                ].forEach(valor => { linha.insertCell().textContent = valor; });
+            });
+            document.getElementById('msg').textContent = veiculos.length + ' veículo(s) encontrado(s).';
+        }
+
+        marcaSel.addEventListener('change', carregarModelos);
+        document.getElementById('buscar').addEventListener('click', buscar);
+
+        carregarMarcas().then(carregarModelos).then(buscar);
+    </script>
+</body>
+</html>
